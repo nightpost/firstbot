@@ -1,6 +1,9 @@
+var restify = require('restify');
 var builder = require('botbuilder');
 
-var helloBot = new builder.TextBot();
+var server = restify.createSerer();
+
+var helloBot = new builder.BotConnectorBot();
 
 helloBot.add('/', new builder.CommandDialog()
 	.matches('^set name', builder.DialogAction.beginDialog('/profile'))
@@ -26,4 +29,12 @@ helloBot.add('/profile', [
 		session.endDialog();
 }]);
 
-helloBot.listenStdin();
+server.use(helloBot.verifyBotFramework({
+	appId: 1,
+	addSecret: 012345
+}));
+server.post('/v1/messages', helloBot.listen());
+
+server.listen(8080, function() {
+	console.log('%s listening to %s', server.name, server.url);
+});
